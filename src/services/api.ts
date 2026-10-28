@@ -433,25 +433,33 @@ const API = {
 
     // ── Chatbot ──
     if (url.includes('/chat')) {
-      const response = await fetch('http://127.0.0.1:8000/ask', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question: body?.message || '',
-        }),
-      });
+      try {
+        const response = await fetch('http://127.0.0.1:8000/ask', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            question: body?.message || '',
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Q&A API request failed');
+        if (response.ok) {
+          const data = await response.json();
+          return {
+            data: {
+              answer: data.answer,
+            },
+            status: 200,
+          };
+        }
+      } catch {
+        // Fall back gracefully to built-in bilingual AI assistant when backend is offline
       }
-
-      const data = await response.json();
 
       return {
         data: {
-          answer: data.answer,
+          answer: generateAIChatResponse(body?.message || ''),
         },
         status: 200,
       };
